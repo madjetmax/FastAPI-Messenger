@@ -1,6 +1,11 @@
 __pycache__/
 
 .env
+.test.env
 venv
+
+celerybeat-schedule.bak
+celerybeat-schedule.dat
+celerybeat-schedule.dir
 
 secrets/

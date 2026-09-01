@@ -1,25 +1,21 @@
 from datetime import datetime, timedelta, UTC
-import bcrypt
+import uuid
+import uuid_utils
 from passlib.context import CryptContext
 import jwt
-
 from src.config import settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def encode_jwt(
     payload: dict,
-    expire_timedelta: timedelta
+    created_at: datetime,
+    expires_at: datetime,
 ) -> str:
     payload_to_encode = payload.copy()
 
-    # set create and expire date
-    now = datetime.now(UTC)
-    expires_at = now + expire_timedelta
-    # timedelta(
-    #     minutes=settings.auth.access_token_expires_minutes
-    # )
-    payload_to_encode["iat"] = now
+    # set created and expire date
+    payload_to_encode["iat"] = created_at
     payload_to_encode["exp"] = expires_at
 
     # get encoded with jwt
@@ -36,7 +32,8 @@ def decode_jwt(token: str | bytes) -> dict:
     decoded = jwt.decode(
         token,         
         settings.auth.public_key, 
-        algorithms=[settings.auth.algorithm]
+        algorithms=[settings.auth.algorithm],
+        options={'verify_exp': False},
     )
 
     return decoded
@@ -62,6 +59,10 @@ def verify_password(
     #     hashed_password
     # )
 
+# * user sessions
+def create_uuid() -> uuid.UUID:
+    return uuid_utils.uuid7()
+
 # * generating tokens
 TOKEN_TYPE_KEY = "type"
 ACCESS_TOKEN_TYPE = "access"
@@ -69,11 +70,14 @@ REFRESH_TOKEN_TYPE = "refresh"
 
 def create_token(
     token_type: str,
-    expire_timedelta: timedelta,
+    created_at: datetime,
+    expires_at: datetime,
     **data: dict
 ) -> str:
     payload = {
         TOKEN_TYPE_KEY: token_type,
         **data
     }
-    return encode_jwt(payload, expire_timedelta=expire_timedelta)
+    return encode_jwt(
+        payload, created_at, expires_at
+    )

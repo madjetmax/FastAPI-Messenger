@@ -8,7 +8,9 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 
 from src.database.models.base import Base
-from src.database.models.user import User
+# from src.database.models.associations import ChatMemberAssociation
+from src.database.models.user import User, UserSession
+from src.database.models.chats import PrivateChat
 
 from src.config import settings
 # this is the Alembic Config object, which provides
